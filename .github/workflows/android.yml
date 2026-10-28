@@ -4,27 +4,86 @@ name: Build Lingo AZ APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Kodu yukle
+      - name: Kodu indir
         uses: actions/checkout@v4
 
-      - name: Java 17 qur
+      - name: Java 17 kur
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: APK hazirla
-        run: gradle assembleDebug
+      - name: Android projesini hazirla
+        run: |
+          mkdir -p app/src/main/java/az/lingo/game
+          mkdir -p app/src/main/assets
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/drawable
 
-      - name: APK faylini saxla
+          cp MainActivity.java app/src/main/java/az/lingo/game/
+          cp index.html app/src/main/assets/
+          cp AndroidManifest.xml app/src/main/
+          cp styles.xml app/src/main/res/values/
+          cp ic_launcher.xml app/src/main/res/drawable/
+
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = 'LingoAZ'
+          include ':app'
+          EOF
+
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.7.3' apply false
+          }
+          EOF
+
+          cat > app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+          android {
+              namespace 'az.lingo.game'
+              compileSdk 35
+              defaultConfig {
+                  applicationId 'az.lingo.game'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0'
+              }
+          }
+          EOF
+
+      - name: Gradle 8.9 kur
+        run: |
+          gradle wrapper --gradle-version 8.9
+          chmod +x gradlew
+
+      - name: APK olustur
+        run: ./gradlew assembleDebug
+
+      - name: APK dosyasini yukle
         uses: actions/upload-artifact@v4
         with:
           name: LingoAZ-APK
