@@ -1,0 +1,2 @@
+# Lingoaz
+Sözlərdən oyun krasvord
