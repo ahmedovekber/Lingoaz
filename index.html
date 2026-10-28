@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#152238">
+<title>Lingo AZ — Azərbaycan söz oyunu</title>
+<style>
+:root{--bg:#101a2b;--panel:#19263b;--tile:#22334c;--line:#3b4d66;--text:#f4f7fb;--muted:#a9b8cc;--green:#28a56b;--yellow:#d5a62e;--gray:#58677b;--accent:#66d9c2}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#203553 0,#101a2b 55%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
+.wrap{width:min(720px,100%);margin:auto;padding:18px 14px 28px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.logo{font-weight:900;letter-spacing:2px;font-size:27px}.logo span{color:var(--accent)}.sub{color:var(--muted);font-size:12px;margin-top:2px}.pill{border:1px solid #49617d;border-radius:99px;padding:7px 11px;color:var(--accent);font-size:12px;font-weight:700}
+.panel{background:rgba(25,38,59,.94);border:1px solid #31435d;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 12px 30px #0002}.settings{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.field select,.field input{width:100%;border:1px solid #405572;background:#101c2e;color:var(--text);border-radius:10px;padding:11px;font-size:14px}
+button{font:inherit;cursor:pointer;border:0}.primary{background:var(--accent);color:#102335;font-weight:800;border-radius:11px;padding:12px 16px}.secondary{background:#2a3b54;color:var(--text);border:1px solid #405572;border-radius:11px;padding:10px 13px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.status{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:12px 0}.status strong{color:var(--text)}.board{display:grid;gap:7px;justify-content:center;margin:16px auto}.row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.tile{width:min(13vw,54px);height:min(13vw,54px);max-width:54px;max-height:54px;min-width:43px;min-height:43px;border:2px solid var(--line);border-radius:9px;display:grid;place-items:center;font-size:22px;font-weight:850;text-transform:uppercase;background:#152238}.tile.green{background:var(--green);border-color:var(--green)}.tile.yellow{background:var(--yellow);border-color:var(--yellow);color:#152238}.tile.gray{background:var(--gray);border-color:var(--gray)}.tile.current{border-color:#8195b1}.keyboard{display:grid;gap:6px;margin-top:18px}.keyrow{display:flex;justify-content:center;gap:4px}.key{min-width:0;flex:1;max-width:48px;padding:12px 0;border-radius:7px;background:#31445f;color:white;font-weight:750;font-size:14px}.key.wide{max-width:78px;font-size:12px;flex:1.5}.key.green{background:var(--green)}.key.yellow{background:var(--yellow);color:#152238}.key.gray{background:#58677b}.message{min-height:24px;text-align:center;color:var(--accent);font-weight:700;font-size:14px}.legend{display:flex;gap:12px;justify-content:center;color:var(--muted);font-size:12px;flex-wrap:wrap}.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}.help{font-size:13px;color:var(--muted);line-height:1.55}.hidden{display:none!important}.scoreline{display:flex;gap:10px}.scorebox{flex:1;background:#122036;border-radius:12px;padding:10px;text-align:center}.scorebox b{font-size:21px;display:block}.scorebox span{font-size:11px;color:var(--muted)}.footer{text-align:center;color:#71849d;font-size:11px;padding:12px}
+@media(max-width:420px){.wrap{padding:13px 10px}.panel{padding:12px}.tile{min-width:39px;min-height:39px;font-size:19px}.row{gap:5px}.board{gap:5px}.key{font-size:12px;padding:13px 0}.settings{gap:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div><div class="logo">LINGO <span>AZ</span></div><div class="sub">Azərbaycan dilində söz tapma oyunu</div></div><div class="pill">🇦🇿 AZƏRBAYCANCA</div></header>
+<section class="panel">
+ <div class="settings">
+  <div class="field"><label for="mode">Oyun rejimi</label><select id="mode"><option value="solo">Tək oyunçu</option><option value="duo">İki nəfərlik növbəli</option></select></div>
+  <div class="field"><label for="difficulty">Söz çətinliyi</label><select id="difficulty"><option value="mixed">Qarışıq</option><option value="easy">Gündəlik sözlər</option><option value="hard">Çətin sözlər</option></select></div>
+ </div>
+ <div class="actions"><button class="primary" id="start">Yeni oyun</button><button class="secondary" id="rulesBtn">Qaydalar</button></div>
+ <div id="rules" class="help hidden" style="margin-top:12px">5 hərfli sözü 6 cəhddə tap. Yaşıl hərf düzgün yerdədir, sarı hərf sözdə var, amma yeri yanlışdır, boz hərf isə sözdə yoxdur. İki nəfərlik rejimdə oyunçular növbə ilə bir cəhd yazır; sözü ilk tapan raundu qazanır. Bütün sözlər Azərbaycan hərfləri ilə yazılır.</div>
+</section>
+<section class="panel">
+ <div class="status"><span id="turn">Oyunçu 1-in növbəsi</span><span>Cəhd: <strong id="attempt">0/6</strong></span></div>
+ <div class="scoreline" id="scores"><div class="scorebox"><b id="score1">0</b><span>OYUNÇU 1</span></div><div class="scorebox hidden" id="score2box"><b id="score2">0</b><span>OYUNÇU 2</span></div></div>
+ <div class="board" id="board" aria-label="Oyun lövhəsi"></div>
+ <div class="message" id="message">Başlamaq üçün “Yeni oyun” düyməsinə bas.</div>
+ <div class="legend"><span><i class="dot" style="background:var(--green)"></i>Düz yer</span><span><i class="dot" style="background:var(--yellow)"></i>Sözdə var</span><span><i class="dot" style="background:var(--gray)"></i>Sözdə yoxdur</span></div>
+ <div class="keyboard" id="keyboard"></div>
+ <div class="actions"><button class="secondary" id="delete">⌫ Sil</button><button class="primary" id="submit" style="flex:1">Sözü yoxla ↵</button></div>
+</section>
+<div class="footer">LINGO AZ · İlkin prototip · İnternetsiz işləyir</div>
+</div>
+<script>
+(() => {
+const words = {
+ easy: ["KITAB","QALAM","DƏRƏCƏ","DƏNİZ","BULUD","GÜNƏŞ","ÇİÇƏK","ÇÖRƏK","PƏNCƏ","QAPI","MASA","STULU","QARDAŞ","BACIM","ŞƏKİL","SƏHƏR","AXŞAM","TORPAQ","DOSTU","KƏNDİ","ŞƏHƏR","YOLCU","QATAR","QAYIQ","BALIQ","PİŞİK","DOVŞAN","ARMUD","HEYVA","ALMAA","ÜZÜK","GÖZLƏ","QULAQ","DİŞLƏ","SAÇLI","İŞIQI","YAZIQ","OYUNU","DƏFTƏ","MƏKTƏB","ANBAR","ÇANTA","KÖRPÜ","KÜLƏK","YAĞIŞ","QARLI","SOYUQ","İSTİL","QONŞU","EVLƏR"],
+ hard: ["MƏRHƏM","MƏSUL","MƏNTİQ","TƏSİRİ","TƏHLİL","İNKİŞAF","MÜNASİB","MÜƏLLİM","DƏQİQƏ","HƏQİQƏ","ƏDALƏT","SƏDAQƏT","CƏSARƏT","MƏHARƏT","MƏQSƏD","NƏTİCƏ","MÜDDƏT","SƏBƏBİ","İRADƏS","TƏCRÜBƏ","BƏRABƏR","TƏBİƏT","MƏDƏNİ","FƏALİY","İMKANL","TƏSVİR","MÜQAYİ","İXTİRA","MƏNTƏQ","TƏRƏQQ","QƏNAƏT","MƏSULİ","HÜQUQİ","İQTİSA","TƏŞƏBB","DƏYƏRL","MƏSULƏ","SƏMƏRƏ","MÜDRİK","ZƏRİFL"],
+ mixed: ["KITAB","QALAM","DƏNİZ","BULUD","GÜNƏŞ","ÇİÇƏK","ÇÖRƏK","QAPI","MASA","ŞƏKİL","SƏHƏR","TORPAQ","QATAR","BALIQ","PİŞİK","ARMUD","ÜZÜK","KÜLƏK","YAĞIŞ","QONŞU","ƏDALƏT","SƏDAQƏT","CƏSARƏT","MƏQSƏD","NƏTİCƏ","MÜDDƏT","TƏCRÜBƏ","TƏSVİR","QƏNAƏT","SƏMƏRƏ","MÜDRİK","ZƏRİFL"]
+};
+// All target words must be exactly 5 letters; normalize lists to valid entries.
+const normalize = s => { const v=s.normalize("NFC").toLocaleUpperCase("az-AZ"); return v==="KITAB" ? "KİTAB" : v; };
+const alphabet = ["Q","W","E","R","T","Y","U","İ","O","P","Ü","Ğ","Ə","A","S","D","F","G","H","J","K","L","I","Ö","Z","X","C","V","B","N","M","Ç","Ş"];
+const cleanWords = {};
+for (const [k, arr] of Object.entries(words)) cleanWords[k] = [...new Set(arr.map(normalize).filter(w => [...w].length === 5 && /^[A-ZƏÇŞĞİÖÜI]+$/.test(w)))];
+cleanWords.easy.push(...["DƏNİZ","QAYIQ","KÖRPÜ","ÇANTA"].map(normalize));
+cleanWords.hard.push(...["FƏLSƏF","MƏNTİQ","TƏBİƏT","İRADƏ"].map(normalize).filter(w=>[...w].length===5));
+let target="", current="", guesses=[], done=false, player=1, scores=[0,0], round=0, keyStates={};
+const $ = id => document.getElementById(id);
+const modeEl=$("mode"), diffEl=$("difficulty"), board=$("board"), keyboard=$("keyboard");
+function chooseWord(){let pool=cleanWords[diffEl.value]||cleanWords.mixed;if(!pool.length)pool=cleanWords.mixed;return pool[Math.floor(Math.random()*pool.length)];}
+function start(){target=chooseWord();current="";guesses=[];done=false;player=1;keyStates={};round++;$("message").textContent="5 hərfli sözü tap!";$("turn").textContent=modeEl.value==="duo"?"Oyunçu 1-in növbəsi":"Söz tapmağa başla";$("score2box").classList.toggle("hidden",modeEl.value!=="duo");render();renderKeyboard();updateStats();}
+function updateStats(){$("attempt").textContent=guesses.length+"/6";$("score1").textContent=scores[0];$("score2").textContent=scores[1];}
+function marks(word){let result=Array(5).fill("gray"),t=[...target],g=[...word];for(let i=0;i<5;i++){if(g[i]===t[i]){result[i]="green";t[i]=null;g[i]=null;}}for(let i=0;i<5;i++){if(g[i]){let ix=t.indexOf(g[i]);if(ix>=0){result[i]="yellow";t[ix]=null;}}}return result;}
+function render(){board.innerHTML="";for(let r=0;r<6;r++){let row=document.createElement("div");row.className="row";let g=guesses[r];for(let c=0;c<5;c++){let tile=document.createElement("div");tile.className="tile";if(g){tile.classList.add(g.marks[c]);tile.textContent=[...g.word][c]||"";}else if(r===guesses.length&&!done){tile.classList.add("current");tile.textContent=[...current][c]||"";}row.appendChild(tile);}board.appendChild(row);}}
+function renderKeyboard(){keyboard.innerHTML="";const rows=[alphabet.slice(0,12),alphabet.slice(12,24),alphabet.slice(24)];rows.forEach((letters,ri)=>{let row=document.createElement("div");row.className="keyrow";if(ri===2){let enter=document.createElement("button");enter.className="key wide";enter.textContent="↵";enter.onclick=submit;row.appendChild(enter);}letters.forEach(ch=>{let b=document.createElement("button");b.className="key "+(keyStates[ch]||"");b.textContent=ch;b.onclick=()=>add(ch);row.appendChild(b);});if(ri===2){let del=document.createElement("button");del.className="key wide";del.textContent="⌫";del.onclick=remove;row.appendChild(del);}keyboard.appendChild(row);});}
+function add(ch){if(done||[...current].length>=5)return;current+=ch;render();}
+function remove(){if(done)return;current=[...current].slice(0,-1).join("");render();}
+function submit(){if(done)return;if([...current].length!==5){$("message").textContent="Zəhmət olmasa 5 hərf yaz.";return;}let word=normalize(current);let result=marks(word);guesses.push({word,marks:result});result.forEach((m,i)=>{let ch=[...word][i];const old=keyStates[ch];if(m==="green"||(!old)||old==="gray"&&m==="yellow")keyStates[ch]=m;});current="";if(word===target){done=true;scores[player-1]++;$("message").textContent="Afərin! Sözü tapdın: "+target+" 🎉";if(modeEl.value==="duo")$("turn").textContent="Oyunçu "+player+" raundu qazandı!";}else if(guesses.length>=6){done=true;$("message").textContent="Cəhdlər bitdi. Cavab: "+target;}else if(modeEl.value==="duo"){player=player===1?2:1;$("turn").textContent="Oyunçu "+player+"-in növbəsi";$("message").textContent="Davam et!";}else $("message").textContent="Davam et! Qalan cəhd: "+(6-guesses.length);render();renderKeyboard();updateStats();}
+$("start").onclick=start;$("submit").onclick=submit;$("delete").onclick=remove;$("rulesBtn").onclick=()=>$("rules").classList.toggle("hidden");modeEl.onchange=()=>{ $("score2box").classList.toggle("hidden",modeEl.value!=="duo");};document.addEventListener("keydown",e=>{if(e.key==="Enter")submit();else if(e.key==="Backspace")remove();else{let ch=normalize(e.key);if([...ch].length===1&&alphabet.includes(ch))add(ch);}});start();
+})();
+</script>
+</body></html>
