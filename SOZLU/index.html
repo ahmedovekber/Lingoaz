@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="az">
 <head>
@@ -8,32 +7,38 @@
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;background:#090d1c;color:white;
- font-family:Arial;text-align:center;padding:12px;
+ margin:0;min-height:100vh;background:#090d1c;color:white;
+ font-family:Arial,sans-serif;text-align:center;padding:10px;
 }
-h1{
- color:#35eaff;font-size:40px;
- text-shadow:0 0 15px #00dfff;margin:12px;
-}
+h1{color:#35eaff;font-size:38px;text-shadow:0 0 15px #00dfff;margin:10px}
 p{color:#aaa}
 button{
- background:#17243b;color:white;
- border:1px solid #27dfff;border-radius:9px;
- padding:11px 13px;margin:4px;font-size:16px;
+ background:#17243b;color:white;border:1px solid #27dfff;
+ border-radius:9px;padding:10px 12px;margin:4px;font-size:15px;
+ cursor:pointer;
 }
 button:active{background:#087c91}
-#board{display:grid;gap:6px;justify-content:center;margin:18px auto}
-.row{display:flex;gap:6px}
+button:disabled{opacity:.5}
+#game{max-width:440px;margin:auto}
+#board{display:grid;gap:5px;justify-content:center;margin:15px auto}
+.row{display:flex;gap:5px}
 .cell{
- width:45px;height:45px;border:2px solid #42516a;
- border-radius:7px;display:flex;align-items:center;
- justify-content:center;font-size:22px;font-weight:bold;
+ width:min(12vw,45px);height:min(12vw,45px);
+ border:2px solid #42516a;border-radius:7px;
+ display:flex;align-items:center;justify-content:center;
+ font-size:21px;font-weight:bold;
 }
 .correct{background:#168b52;border-color:#168b52}
 .present{background:#b58a17;border-color:#b58a17}
 .absent{background:#344052;border-color:#344052}
-#keyboard{max-width:390px;margin:15px auto}
-#keyboard button{padding:10px 7px;margin:3px;min-width:29px}
+#keyboard{max-width:390px;margin:12px auto}
+#keyboard button{padding:10px 5px;margin:2px;min-width:27px}
+#info{min-height:24px;color:#35eaff;font-weight:bold}
+#menu{margin-top:35px}
+@media(max-width:360px){
+ h1{font-size:32px}
+ #keyboard button{min-width:24px;padding:9px 3px;font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -42,42 +47,43 @@ button:active{background:#087c91}
 <p>Sözünü tap, zəkanı göstər</p>
 
 <div id="menu">
-<h3>Dil seç</h3>
-<button onclick="lang='az';start()">AZƏRBAYCAN</button>
-<button onclick="lang='ru';start()">РУССКИЙ</button>
+ <h3>Dil seç</h3>
+ <button onclick="start('az')">AZƏRBAYCAN</button>
+ <button onclick="start('ru')">РУССКИЙ</button>
 </div>
 
 <div id="game" hidden>
-<h3 id="modeTitle">Hərf sayını seç</h3>
-<div id="modes">
-<button onclick="mode(3)">3 hərf</button>
-<button onclick="mode(4)">4 hərf</button>
-<button onclick="mode(5)">5 hərf</button>
-<button onclick="mode(6)">6 hərf</button>
-</div>
+ <h3 id="modeTitle">Hərf sayını seç</h3>
+ <div id="modes">
+  <button onclick="newGame(3)">3 hərf</button>
+  <button onclick="newGame(4)">4 hərf</button>
+  <button onclick="newGame(5)">5 hərf</button>
+  <button onclick="newGame(6)">6 hərf</button>
+ </div>
 
-<p id="info">6 cəhdin var</p>
-<div id="board"></div>
-<div id="keyboard"></div>
-<button onclick="mode(n)">Yeni söz</button>
-<button onclick="location.reload()">Dil dəyiş</button>
+ <p id="info">6 cəhdin var</p>
+ <div id="board"></div>
+ <div id="keyboard"></div>
+ <button onclick="newGame(n)">Yeni söz</button>
+ <button onclick="changeLanguage()">Dil dəyiş</button>
 </div>
 
 <script>
-let lang='az',n=4,attempt=0,answer='',guess='';
+let lang=localStorage.getItem('sozlu_lang')||'az';
+let n=4,attempt=0,answer='',guess='',finished=false;
 
 const words={
  az:{
   3:['ANA','ATA','GÜL','GÖL','GÜN','AYI'],
-  4:['DOST','QAPI','AĞAC','EVLƏ'],
-  5:['ALMAQ','DƏNİZ','BULUD','KƏLƏM'],
-  6:['DƏFTƏR','BULVAR','KİTABÇ']
+  4:['DOST','QAPI','AĞAC','OYUN','DƏRS','BALQ'],
+  5:['ALMAQ','DƏNİZ','BULUD','KƏLƏM','QƏLƏM'],
+  6:['DƏFTƏR','BİRLİK','DÜŞMƏN','GƏLƏCƏK']
  },
  ru:{
   3:['КОТ','ДОМ','МИР','ЛЕС'],
   4:['МАМА','ПАПА','ЛЕТО','ОКНО'],
   5:['КНИГА','СЛОВО','МАСКА','ВЕСНА'],
-  6:['МАШИНА','СОБАКА','МОЛОКО']
+  6:['МАШИНА','СОБАКА','МОЛОКО','РАБОТА']
  }
 };
 
@@ -86,95 +92,137 @@ const keyboards={
  ru:'ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ'
 };
 
-function start(){
+function start(language){
+ lang=language;
+ localStorage.setItem('sozlu_lang',lang);
  document.getElementById('menu').hidden=true;
  document.getElementById('game').hidden=false;
- mode(4);
+ newGame(4);
 }
 
-function mode(x){
- n=x;attempt=0;guess='';
- let list=words[lang][n];
+function changeLanguage(){
+ document.getElementById('game').hidden=true;
+ document.getElementById('menu').hidden=false;
+}
+
+function newGame(size){
+ n=size;
+ attempt=0;
+ guess='';
+ finished=false;
+
+ const list=words[lang][n];
  answer=list[Math.floor(Math.random()*list.length)];
+
+ document.getElementById('modeTitle').textContent=
+ lang==='az'?'Hərf sayını seç':'Выберите количество букв';
+
  draw();
 }
 
 function draw(){
- let b=document.getElementById('board');
- b.innerHTML='';
+ const board=document.getElementById('board');
+ board.innerHTML='';
+
  for(let r=0;r<6;r++){
-  let row=document.createElement('div');
+  const row=document.createElement('div');
   row.className='row';
+
   for(let c=0;c<n;c++){
-   let cell=document.createElement('div');
+   const cell=document.createElement('div');
    cell.className='cell';
    row.appendChild(cell);
   }
-  b.appendChild(row);
+  board.appendChild(row);
  }
- document.getElementById('info').textContent='6 cəhdin var';
+
+ document.getElementById('info').textContent=
+ lang==='az'?'6 cəhdin var':'У вас 6 попыток';
+
  keyboard();
+ update();
 }
 
 function keyboard(){
- let k=document.getElementById('keyboard');
+ const k=document.getElementById('keyboard');
  k.innerHTML='';
- for(let ch of keyboards[lang]){
-  let btn=document.createElement('button');
+
+ for(const ch of keyboards[lang]){
+  const btn=document.createElement('button');
   btn.textContent=ch;
   btn.onclick=()=>press(ch);
   k.appendChild(btn);
  }
- let del=document.createElement('button');
+
+ const del=document.createElement('button');
  del.textContent='⌫';
  del.onclick=()=>{
+  if(finished)return;
   guess=guess.slice(0,-1);
   update();
  };
  k.appendChild(del);
 
- let enter=document.createElement('button');
- enter.textContent='OK';
+ const enter=document.createElement('button');
+ enter.textContent=lang==='az'?'OK':'ВВОД';
  enter.onclick=check;
  k.appendChild(enter);
 }
 
 function update(){
- let row=document.getElementById('board').children[attempt];
+ const row=document.getElementById('board').children[attempt];
+ if(!row)return;
+
  for(let i=0;i<n;i++){
   row.children[i].textContent=guess[i]||'';
  }
 }
 
 function press(ch){
- if(guess.length<n){
-  guess+=ch;
-  update();
- }
+ if(finished||guess.length>=n)return;
+ guess+=ch;
+ update();
 }
 
 function check(){
+ if(finished)return;
+
  if(guess.length!==n){
-  document.getElementById('info').textContent='Bütün xanaları doldur!';
+  message(lang==='az'?'Bütün xanaları doldur!':'Заполните все клетки!');
   return;
  }
 
- let row=document.getElementById('board').children[attempt];
+ const row=document.getElementById('board').children[attempt];
+ const result=Array(n).fill('absent');
+ const remaining={};
 
+ // Əvvəlcə düzgün yerdə olan hərfləri tapırıq
  for(let i=0;i<n;i++){
-  let c=row.children[i];
-  c.textContent=guess[i];
   if(guess[i]===answer[i]){
-   c.classList.add('correct');
-  }else if(answer.includes(guess[i])){
-   c.classList.add('present');
+   result[i]='correct';
   }else{
-   c.classList.add('absent');
+   remaining[answer[i]]=(remaining[answer[i]]||0)+1;
   }
  }
 
+ // Sonra başqa yerdə olan hərfləri tapırıq
+ for(let i=0;i<n;i++){
+  if(result[i]==='correct')continue;
+
+  if(remaining[guess[i]]>0){
+   result[i]='present';
+   remaining[guess[i]]--;
+  }
+ }
+
+ for(let i=0;i<n;i++){
+  row.children[i].textContent=guess[i];
+  row.children[i].classList.add(result[i]);
+ }
+
  if(guess===answer){
-  document.getElementById('info').textContent='🎉 Təbriklər! Sözü tapdın!';
+  finished=true;
+  message(lang==='az'?'🎉 Təbriklər! Sözü tapdın!':'🎉 Поздравляем! Вы угадали!');
   return;
  }
 
@@ -182,13 +230,33 @@ function check(){
  guess='';
 
  if(attempt===6){
-  document.getElementById('info').textContent='Oyun bitdi! Cavab: '+answer;
+  finished=true;
+  message((lang==='az'?'Oyun bitdi! Cavab: ':'Игра окончена! Ответ: ')+answer);
   return;
  }
 
- document.getElementById('info').textContent=
- (6-attempt)+' cəhdin qaldı';
+ message(lang==='az'?(6-attempt)+' cəhdin qaldı': 'Осталось попыток: '+(6-attempt));
 }
+
+function message(text){
+ document.getElementById('info').textContent=text;
+}
+
+// Telefonun öz klaviaturası ilə də hərf yazmaq
+document.addEventListener('keydown',e=>{
+ if(document.getElementById('game').hidden||finished)return;
+
+ const key=e.key.toLocaleUpperCase(lang==='az'?'az':'ru');
+
+ if(key==='BACKSPACE'){
+  guess=guess.slice(0,-1);
+  update();
+ }else if(key==='ENTER'){
+  check();
+ }else if(keyboards[lang].includes(key)){
+  press(key);
+ }
+});
 </script>
 </body>
 </html>
