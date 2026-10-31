@@ -1,1 +1,194 @@
 
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SÖZLÜ</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#090d1c;color:white;
+ font-family:Arial;text-align:center;padding:12px;
+}
+h1{
+ color:#35eaff;font-size:40px;
+ text-shadow:0 0 15px #00dfff;margin:12px;
+}
+p{color:#aaa}
+button{
+ background:#17243b;color:white;
+ border:1px solid #27dfff;border-radius:9px;
+ padding:11px 13px;margin:4px;font-size:16px;
+}
+button:active{background:#087c91}
+#board{display:grid;gap:6px;justify-content:center;margin:18px auto}
+.row{display:flex;gap:6px}
+.cell{
+ width:45px;height:45px;border:2px solid #42516a;
+ border-radius:7px;display:flex;align-items:center;
+ justify-content:center;font-size:22px;font-weight:bold;
+}
+.correct{background:#168b52;border-color:#168b52}
+.present{background:#b58a17;border-color:#b58a17}
+.absent{background:#344052;border-color:#344052}
+#keyboard{max-width:390px;margin:15px auto}
+#keyboard button{padding:10px 7px;margin:3px;min-width:29px}
+</style>
+</head>
+<body>
+
+<h1>SÖZLÜ</h1>
+<p>Sözünü tap, zəkanı göstər</p>
+
+<div id="menu">
+<h3>Dil seç</h3>
+<button onclick="lang='az';start()">AZƏRBAYCAN</button>
+<button onclick="lang='ru';start()">РУССКИЙ</button>
+</div>
+
+<div id="game" hidden>
+<h3 id="modeTitle">Hərf sayını seç</h3>
+<div id="modes">
+<button onclick="mode(3)">3 hərf</button>
+<button onclick="mode(4)">4 hərf</button>
+<button onclick="mode(5)">5 hərf</button>
+<button onclick="mode(6)">6 hərf</button>
+</div>
+
+<p id="info">6 cəhdin var</p>
+<div id="board"></div>
+<div id="keyboard"></div>
+<button onclick="mode(n)">Yeni söz</button>
+<button onclick="location.reload()">Dil dəyiş</button>
+</div>
+
+<script>
+let lang='az',n=4,attempt=0,answer='',guess='';
+
+const words={
+ az:{
+  3:['ANA','ATA','GÜL','GÖL','GÜN','AYI'],
+  4:['DOST','QAPI','AĞAC','EVLƏ'],
+  5:['ALMAQ','DƏNİZ','BULUD','KƏLƏM'],
+  6:['DƏFTƏR','BULVAR','KİTABÇ']
+ },
+ ru:{
+  3:['КОТ','ДОМ','МИР','ЛЕС'],
+  4:['МАМА','ПАПА','ЛЕТО','ОКНО'],
+  5:['КНИГА','СЛОВО','МАСКА','ВЕСНА'],
+  6:['МАШИНА','СОБАКА','МОЛОКО']
+ }
+};
+
+const keyboards={
+ az:'QÜERTYUIOPÖĞASDFGHJKLİƏZXCVBNMÇŞ',
+ ru:'ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ'
+};
+
+function start(){
+ document.getElementById('menu').hidden=true;
+ document.getElementById('game').hidden=false;
+ mode(4);
+}
+
+function mode(x){
+ n=x;attempt=0;guess='';
+ let list=words[lang][n];
+ answer=list[Math.floor(Math.random()*list.length)];
+ draw();
+}
+
+function draw(){
+ let b=document.getElementById('board');
+ b.innerHTML='';
+ for(let r=0;r<6;r++){
+  let row=document.createElement('div');
+  row.className='row';
+  for(let c=0;c<n;c++){
+   let cell=document.createElement('div');
+   cell.className='cell';
+   row.appendChild(cell);
+  }
+  b.appendChild(row);
+ }
+ document.getElementById('info').textContent='6 cəhdin var';
+ keyboard();
+}
+
+function keyboard(){
+ let k=document.getElementById('keyboard');
+ k.innerHTML='';
+ for(let ch of keyboards[lang]){
+  let btn=document.createElement('button');
+  btn.textContent=ch;
+  btn.onclick=()=>press(ch);
+  k.appendChild(btn);
+ }
+ let del=document.createElement('button');
+ del.textContent='⌫';
+ del.onclick=()=>{
+  guess=guess.slice(0,-1);
+  update();
+ };
+ k.appendChild(del);
+
+ let enter=document.createElement('button');
+ enter.textContent='OK';
+ enter.onclick=check;
+ k.appendChild(enter);
+}
+
+function update(){
+ let row=document.getElementById('board').children[attempt];
+ for(let i=0;i<n;i++){
+  row.children[i].textContent=guess[i]||'';
+ }
+}
+
+function press(ch){
+ if(guess.length<n){
+  guess+=ch;
+  update();
+ }
+}
+
+function check(){
+ if(guess.length!==n){
+  document.getElementById('info').textContent='Bütün xanaları doldur!';
+  return;
+ }
+
+ let row=document.getElementById('board').children[attempt];
+
+ for(let i=0;i<n;i++){
+  let c=row.children[i];
+  c.textContent=guess[i];
+  if(guess[i]===answer[i]){
+   c.classList.add('correct');
+  }else if(answer.includes(guess[i])){
+   c.classList.add('present');
+  }else{
+   c.classList.add('absent');
+  }
+ }
+
+ if(guess===answer){
+  document.getElementById('info').textContent='🎉 Təbriklər! Sözü tapdın!';
+  return;
+ }
+
+ attempt++;
+ guess='';
+
+ if(attempt===6){
+  document.getElementById('info').textContent='Oyun bitdi! Cavab: '+answer;
+  return;
+ }
+
+ document.getElementById('info').textContent=
+ (6-attempt)+' cəhdin qaldı';
+}
+</script>
+</body>
+</html>
