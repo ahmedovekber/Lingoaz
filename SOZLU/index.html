@@ -1,1 +1,198 @@
-{"message_id": "ae7d2b2-4a24-8d3f-5c6f1e9a5f1c", "content_type":
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SÖZLÜ</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080d1c;color:#fff;font-family:Arial,sans-serif;text-align:center;min-height:100vh}
+header{padding:18px 10px 8px}
+h1{margin:0;color:#32f5d0;font-size:38px;letter-spacing:5px;text-shadow:0 0 15px #00eacb}
+.sub{color:#aab7d5;font-size:12px;margin-top:5px}
+.panel{max-width:440px;margin:auto;padding:10px}
+button{background:#17233d;color:white;border:1px solid #33496d;border-radius:9px;padding:10px 13px;margin:4px;font-size:14px;cursor:pointer}
+button.active{background:#00bda5;color:#06121b;border-color:#43ffe0;font-weight:bold}
+button:disabled{opacity:.35}
+.modes{display:flex;justify-content:center;flex-wrap:wrap;margin:8px 0}
+#board{display:grid;gap:6px;justify-content:center;margin:14px auto}
+.line{display:flex;gap:6px;justify-content:center}
+.cell{width:48px;height:48px;border:2px solid #344563;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:23px;font-weight:bold;background:#111b30}
+.cell.good{background:#168b65;border-color:#27e6a4}
+.cell.present{background:#b58a21;border-color:#ffcf4d}
+.cell.bad{background:#344057;border-color:#53627a}
+#message{min-height:24px;color:#42f4d2;font-weight:bold;margin:10px}
+#keyboard{max-width:440px;margin:12px auto}
+.keyrow{display:flex;justify-content:center;gap:4px;margin:5px 0}
+.key{padding:12px 0;flex:1;max-width:39px;font-weight:bold;font-size:14px;background:#263653;border-radius:6px}
+.key.wide{max-width:65px;font-size:12px}
+.info{color:#9aaaca;font-size:13px;margin:8px}
+#settings{display:none;background:#111b30;border:1px solid #33496d;border-radius:12px;padding:12px;margin:10px auto;max-width:350px}
+select{background:#17233d;color:white;padding:9px;border-radius:8px}
+footer{color:#71819f;font-size:11px;padding:15px}
+</style>
+</head>
+<body>
+<header>
+<h1>SÖZLÜ</h1>
+<div class="sub">Sözünü tap, zəkanı göstər</div>
+</header>
+
+<div class="panel">
+<div>
+<button id="az" class="active" onclick="setLang('az')">AZ</button>
+<button id="ru" onclick="setLang('ru')">RU</button>
+<button onclick="toggleSettings()">⚙ Ayarlar</button>
+</div>
+
+<div id="settings">
+<p>Səs: <select id="sound" onchange="localStorage.setItem('sozluSound',this.value)">
+<option value="on">Açıq</option>
+<option value="off">Bağlı</option>
+</select></p>
+<p>Dil: <button onclick="setLang('az')">Azərbaycan</button><button onclick="setLang('ru')">Русский</button></p>
+</div>
+
+<div class="info" id="modeTitle">Hərf sayını seç:</div>
+<div class="modes">
+<button class="active" onclick="newGame(3)">3 hərf</button>
+<button onclick="newGame(4)">4 hərf</button>
+<button onclick="newGame(5)">5 hərf</button>
+<button onclick="newGame(6)">6 hərf</button>
+</div>
+
+<div class="info" id="attemptInfo">6 cəhdin var</div>
+<div id="board"></div>
+<div id="message">Oyuna başla!</div>
+<div id="keyboard"></div>
+<button onclick="newGame(length)">↻ Yeni oyun</button>
+</div>
+
+<footer>SÖZLÜ © 2026</footer>
+
+<script>
+const words={
+az:{
+3:["ANA","ATA","BAL","GÜL","GÖL","DAĞ","AYI","SUY","EVƏ","DƏN","TOP","KƏS","YOL","QAR","KÖK"],
+4:["ALMA","BALQ","DOST","KİTAB","GÜLƏ","DƏRS","QAPI","SÖZÜ","AYLA","BAŞA","QARA","SARI","YAZI","OYUN"],
+5:["ARMUD","DƏNİZ","GÜNƏŞ","QARDA","KƏPƏK","KÖRPƏ","ŞƏKİL","BULUD","ÇİÇƏK","DÜNYA"],
+6:["KİTABX","MƏKTƏB","QARDAŞ","ANANAS","DƏFTƏR","SƏHƏRİ","BALIQL"]
+},
+ru:{
+3:["КОТ","ДОМ","МИР","ЛЕС","САД","МАК","НОС","РОТ","СОН","ШАР"],
+4:["ВОДА","КНИГ","СТОЛ","ОКНО","РУКА","НОГА","ЛУНА","ЗИМА","ЛЕТО","МОРЕ"],
+5:["ШКОЛА","КНИГА","МАМАМ","ПАПКА","ВЕСНА","ЗЕМЛЯ","СОСНА","АРБУЗ"],
+6:["МОЛОКО","СОБАКА","МАШИНА","РАДУГА","КОМНАТА","ДЕРЕВО"]
+}
+};
+const keyboards={
+az:["QÜERTYUIOPÖĞ","ASDFGHJKLİƏ","ZXCVBNMÇŞ"],
+ru:["ЙЦУКЕНГШЩЗХ","ФЫВАПРОЛДЖЭ","ЯЧСМИТЬБЮ"]
+};
+let lang=localStorage.getItem("sozluLang")||"az";
+let length=3,answer="",attempt=0,current="",finished=false;
+let sound=localStorage.getItem("sozluSound")||"on";
+document.getElementById("sound").value=sound;
+
+function setLang(l){
+lang=l;localStorage.setItem("sozluLang",l);
+document.getElementById("az").classList.toggle("active",l==="az");
+document.getElementById("ru").classList.toggle("active",l==="ru");
+newGame(length);
+}
+function toggleSettings(){
+let s=document.getElementById("settings");
+s.style.display=s.style.display==="block"?"none":"block";
+}
+function beep(){
+if(sound==="off")return;
+try{
+let a=new AudioContext(),o=a.createOscillator(),g=a.createGain();
+o.connect(g);g.connect(a.destination);o.frequency.value=700;
+g.gain.value=.08;o.start();o.stop(a.currentTime+.13);
+}catch(e){}
+}
+function newGame(n){
+length=n;attempt=0;current="";finished=false;
+let list=words[lang][length]||[];
+answer=list[Math.floor(Math.random()*list.length)];
+document.getElementById("message").textContent=lang==="az"?"Sözü tap!":"Угадай слово!";
+document.getElementById("attemptInfo").textContent=lang==="az"?"6 cəhdin var":"У тебя 6 попыток";
+document.querySelectorAll(".modes button").forEach((b,i)=>b.classList.toggle("active",i===n-3));
+drawBoard();drawKeyboard();
+}
+function drawBoard(){
+let b=document.getElementById("board");b.innerHTML="";
+for(let r=0;r<6;r++){
+let line=document.createElement("div");line.className="line";
+for(let c=0;c<length;c++){
+let cell=document.createElement("div");cell.className="cell";
+cell.id="c"+r+"-"+c;line.appendChild(cell);
+}
+b.appendChild(line);
+}
+}
+function drawKeyboard(){
+let k=document.getElementById("keyboard");k.innerHTML="";
+keyboards[lang].forEach(row=>{
+let div=document.createElement("div");div.className="keyrow";
+[...row].forEach(ch=>{
+let btn=document.createElement("button");btn.className="key";
+btn.textContent=ch;btn.onclick=()=>addLetter(ch);div.appendChild(btn);
+});
+k.appendChild(div);
+});
+let last=k.lastChild;
+let back=document.createElement("button");back.className="key wide";back.textContent="⌫";
+back.onclick=removeLetter;last.appendChild(back);
+let enter=document.createElement("button");enter.className="key wide";
+enter.textContent=lang==="az"?"OK":"ВВОД";enter.onclick=submit;last.appendChild(enter);
+}
+function addLetter(ch){
+if(finished||current.length>=length)return;
+current+=ch;updateCurrent();
+}
+function removeLetter(){
+if(finished)return;
+current=current.slice(0,-1);updateCurrent();
+}
+function updateCurrent(){
+for(let i=0;i<length;i++){
+let c=document.getElementById("c"+attempt+"-"+i);
+c.textContent=current[i]||"";
+}
+}
+function submit(){
+if(finished)return;
+if(current.length!==length){
+document.getElementById("message").textContent=lang==="az"?"Bütün xanaları doldur!":"Заполни все клетки!";
+return;
+}
+let row=document.getElementById("board").children[attempt];
+for(let i=0;i<length;i++){
+let cell=row.children[i],ch=current[i];
+if(ch===answer[i])cell.classList.add("good");
+else if(answer.includes(ch))cell.classList.add("present");
+else cell.classList.add("bad");
+}
+if(current===answer){
+document.getElementById("message").textContent=lang==="az"?"ƏLA! Düz tapdın! 🎉":"Отлично! Угадал! 🎉";
+finished=true;beep();return;
+}
+attempt++;
+current="";
+if(attempt===6){
+document.getElementById("message").textContent=(lang==="az"?"Cavab: ":"Ответ: ")+answer;
+finished=true;return;
+}
+document.getElementById("attemptInfo").textContent=(lang==="az"?"Qalan cəhd: ":"Осталось попыток: ")+(6-attempt);
+}
+document.addEventListener("keydown",e=>{
+if(e.key==="Enter")submit();
+else if(e.key==="Backspace")removeLetter();
+else if(e.key.length===1)addLetter(e.key.toLocaleUpperCase(lang==="az"?"az":"ru"));
+});
+newGame(3);
+</script>
+</body>
+</html>
